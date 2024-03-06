@@ -28,8 +28,10 @@ export function TodoList() {
 
   const saveTodo = () => {
     const todoData = {
-      memberId: memberId,
-      content: newTodoContent,
+      member: {
+        memberId: memberId,
+      },
+      taskName: newTodoContent,
     };
 
     apiPostMyTodoList(todoData)
@@ -41,7 +43,7 @@ export function TodoList() {
           .catch((error) => {
             console.error("TodoList 조회 실패: ", error);
           });
-        setNewTodoContent("");
+        setNewTodoContent(""); // input field 초기화
       })
       .catch((error) => {
         console.error("TodoList 저장 실패: ", error);
@@ -50,11 +52,13 @@ export function TodoList() {
 
   const updateTodo = (taskId, updatedContent) => {
     const updatedTodoData = {
-      taskId: taskId,
-      content: updatedContent,
+      member: {
+        memberId: memberId,
+      },
+      taskName: updatedContent,
     };
 
-    apiPutMyTodoList(updatedTodoData)
+    apiPutMyTodoList(taskId, updatedTodoData)
       .then((response) => {
         setTodos(
           todos.map((todo) =>
@@ -89,11 +93,7 @@ export function TodoList() {
         {todos.map((todo) =>
           todo ? (
             <li key={todo.taskId}>
-              <input
-                type="text"
-                value={todo.content}
-                onChange={(e) => updateTodo(todo.taskId, e.target.value)}
-              />
+              <span>{todo.taskName}</span>
               <button onClick={() => deleteTodo(todo.taskId)}>Delete</button>
             </li>
           ) : null
