@@ -10,12 +10,11 @@ export function Dashboard() {
   useEffect(() => {
     const token = sessionStorage.getItem("Token");
     fetchUserInfo(token);
-  }, []);
+  }, [userRoles]);
 
   const fetchUserInfo = async (token) => {
     try {
       const response = await apiGetCurrentUserInfo(token);
-      //여기가 문제인 건가
       const { authorityDtoSet } = response.data.data;
       const roles = authorityDtoSet.map((authority) => authority.authorityName);
 

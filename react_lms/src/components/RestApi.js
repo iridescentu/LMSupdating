@@ -6,6 +6,13 @@ export function RestApi() {
 
 const token = sessionStorage.getItem("Token");
 
+// ADMIN이 loginId로 얻는 정보 조회
+// export function apiGetMemberInfo(loginId) {
+//   return axios.get(`http://localhost:8080/api/member/${loginId}`, {
+//     headers: { Authorization: `Bearer ${token}` },
+//   });
+// }
+
 // signup
 export function apiSignupByAxiosPost(
   loginId,
@@ -207,13 +214,6 @@ export function apiGetAllExamQuestions() {
   });
 }
 
-// ADMIN이 loginId로 얻는 정보 조회
-export function apiGetMemberInfo(loginId) {
-  return axios.get(`http://localhost:8080/api/member/${loginId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
-
 // 특정 시험 문제 조회
 export function apiGetQuestionsForExam(examId) {
   return axios.get(`http://localhost:8080/api/exam-questions/list/${examId}`, {
@@ -322,16 +322,12 @@ export function apiDeleteSubject(subjectId, subjectData) {
 // --------------- Course Rest API ---------------
 // 모든 코스 조회
 export function apiGetAllCourses() {
-  return axios.get("http://localhost:8080/api/course/list", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return axios.get("http://localhost:8080/api/course/list");
 }
 
 // 서브젝트에 따라 코스 조회
 export function apiGetCourseBySubject(subjectId) {
-  return axios.get(`http://localhost:8080/api/course/subject/${subjectId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return axios.get(`http://localhost:8080/api/course/subject/${subjectId}`);
 }
 
 // 특정 코스 조회
@@ -721,7 +717,6 @@ export function apiPostMyTodoList(todoData) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
-
 // TodoList 수정
 export function apiPutMyTodoList(taskId, todoData) {
   return axios.put(
@@ -732,6 +727,7 @@ export function apiPutMyTodoList(taskId, todoData) {
     }
   );
 }
+
 // TodoList 삭제
 export function apiDeleteMyTodoList(taskId) {
   return axios.delete(`http://localhost:8080/api/todolist/delete/${taskId}`, {

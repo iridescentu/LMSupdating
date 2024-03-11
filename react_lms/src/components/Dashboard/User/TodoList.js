@@ -1,160 +1,172 @@
-import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../../AuthContext";
+import styled from "styled-components";
 import {
   apiDeleteMyTodoList,
   apiGetMyTodoList,
   apiPostMyTodoList,
   apiPutMyTodoList,
 } from "../../RestApi";
-import styled from "styled-components";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../../AuthContext";
+import { Icon } from "@iconify/react";
 
-const Container = styled.div``;
-
-const TodoTitle = styled.p`
-  font-size: 50px;
-  font-weight: bold;
-  padding: 5px 0;
-`;
-
-const FormContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-`;
-
-const AddBtn = styled.button`
-  background-color: white;
-  color: #3182f6;
-  padding: 5px 10px;
-  margin: 8px 0;
-  border: 2px solid #3182f6;
-  cursor: pointer;
-  border-radius: 5px;
-
-  &:hover {
-    background-color: #3182f6;
-    color: white;
+const Container = styled.div`
+  & .titleTodo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  & .postTodo {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 1rem 0;
+    padding: 5px 10px;
+    & button {
+      background-color: transparent;
+      white-space: nowrap;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #3182f6;
+      color: #fff;
+    }
+    & input {
+      padding: 2px;
+      border: none;
+      width: 100%;
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+  & ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+    gap: 10px;
+    & li {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+      position: relative;
+      & .xIcon {
+        position: absolute;
+        top: 0;
+        right: 0;
+        color: #3182f6;
+      }
+    }
   }
 `;
-
-const DelBtn = styled.button`
-  background-color: white;
-  color: #3182f6;
-  padding: 3px 5px;
-  margin: 8px 8px;
-  border: 2px solid #3182f6;
-  cursor: pointer;
-  border-radius: 15px;
-  font-size: 10px;
-
-  &:hover {
-    background-color: #3182f6;
-    color: white;
-  }
-`;
-
-const TodoItem = styled.li`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 18px;
-  padding: 5px 5px;
-`;
-
 export function TodoList() {
   const { user } = useContext(AuthContext);
   const [todos, setTodos] = useState([]);
-  const [newTodoContent, setNewTodoContent] = useState("");
-  const memberId = user.memberId;
+  const [newTodo, setNewTodo] = useState("");
 
+  // 유저의 todo 조회
   useEffect(() => {
-    apiGetMyTodoList(memberId)
+    apiGetMyTodoList(user.memberId)
       .then((response) => {
         setTodos(response.data.data);
       })
-      .catch((error) => {
-        console.error("TodoList 조회 실패: ", error);
+      .catch((err) => {
+        console.log("todo list 조회 실패: ", err);
       });
-  }, [memberId]);
+  }, [user.memberId]);
 
-  const saveTodo = () => {
-    const todoData = {
-      member: {
-        memberId: memberId,
-      },
-      taskName: newTodoContent,
-    };
+  const handleInputChange = (e) => {
+    setNewTodo(e.target.value);
+  };
 
+  const handleTodoSubmit = () => {
+    if (!newTodo) {
+      alert("공백일 수 없습니다.");
+      return;
+    }
+    const todoData = { member: user, taskName: newTodo };
+
+    // 유저의 todo 저장
     apiPostMyTodoList(todoData)
       .then((response) => {
-        apiGetMyTodoList(memberId)
-          .then((response) => {
-            setTodos(response.data.data);
-          })
-          .catch((error) => {
-            console.error("TodoList 조회 실패: ", error);
-          });
-        setNewTodoContent(""); // input field 초기화
+        setNewTodo("");
+        return apiGetMyTodoList(user.memberId);
       })
-      .catch((error) => {
-        console.error("TodoList 저장 실패: ", error);
-      });
+      .then((response) => setTodos(response.data.data))
+      .catch((err) => console.log("Todo 등록 실패: ", err));
   };
 
-  const updateTodo = (taskId, updatedContent) => {
-    const updatedTodoData = {
-      member: {
-        memberId: memberId,
-      },
-      taskName: updatedContent,
-    };
+  const handleTodoUpdate = (e, taskId) => {
+    const isCompleted = e.target.value === "done";
+    const todoData = { member: user, isCompleted: isCompleted };
 
-    apiPutMyTodoList(taskId, updatedTodoData)
+    // 유저의 todo completed 수정
+    apiPutMyTodoList(taskId, todoData)
       .then((response) => {
-        setTodos(
-          todos.map((todo) =>
-            todo.taskId === taskId ? response.data.data : todo
-          )
-        );
+        return apiGetMyTodoList(user.memberId);
       })
-      .catch((error) => {
-        console.error("TodoList 수정 실패: ", error);
-      });
+      .then((response) => {
+        setTodos(response.data.data);
+      })
+      .catch((err) => console.log("todo list 수정 실패: ", err));
   };
 
-  const deleteTodo = (taskId) => {
+  // 유저의 todo 삭제
+  const handleTodoDelete = (taskId) => {
     apiDeleteMyTodoList(taskId)
-      .then(() => {
-        setTodos(todos.filter((todo) => todo.taskId !== taskId));
+      .then((response) => {
+        return apiGetMyTodoList(user.memberId);
       })
-      .catch((error) => {
-        console.error("TodoList 삭제 실패: ", error);
-      });
+      .then((response) => setTodos(response.data.data))
+      .catch((err) => console.log("Todo 삭제 실패: ", err));
   };
 
   return (
-    <Container>
-      <TodoTitle>Surfer's Todo-List</TodoTitle>
-      <FormContainer>
-        <input
-          type="text"
-          value={newTodoContent}
-          onChange={(e) => setNewTodoContent(e.target.value)}
-        />
-        <AddBtn onClick={saveTodo}>Add Todo</AddBtn>
-      </FormContainer>
-      <ul>
-        {todos.map((todo) =>
-          todo ? (
-            <TodoItem key={todo.taskId}>
-              {" "}
-              <span>• {todo.taskName}</span>
-              <DelBtn onClick={() => deleteTodo(todo.taskId)}>✕</DelBtn>
-            </TodoItem>
-          ) : null
-        )}
-      </ul>
-    </Container>
+    <>
+      <Container>
+        <div className="titleTodo">
+          <Icon icon={"ri:todo-line"}></Icon>
+          <h3>Daily Task</h3>
+        </div>
+        <div className="postTodo">
+          <input
+            type="text"
+            value={newTodo}
+            onChange={handleInputChange}
+            placeholder="새로운 할 일을 입력하세요."
+          />
+          <button onClick={handleTodoSubmit}>등록</button>
+        </div>
+        <ul>
+          {todos.map((todo) => (
+            <li key={todo.taskId}>
+              <input
+                type="checkbox"
+                checked={todo.isCompleted}
+                onChange={(e) => handleTodoUpdate(e, todo.taskId)}
+              />
+              <span
+                style={{
+                  textDecoration: todo.isCompleted ? "line-through" : "none",
+                  color: todo.isCompleted ? "#ddd" : "#212529",
+                }}
+              >
+                {todo.taskName}
+              </span>
+              <Icon
+                className="xIcon"
+                onClick={() => handleTodoDelete(todo.taskId)}
+                icon={"zondicons:close-outline"}
+              ></Icon>
+            </li>
+          ))}
+        </ul>
+      </Container>
+    </>
   );
 }
