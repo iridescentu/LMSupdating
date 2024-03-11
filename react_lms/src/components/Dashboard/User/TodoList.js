@@ -10,6 +10,58 @@ import styled from "styled-components";
 
 const Container = styled.div``;
 
+const TodoTitle = styled.p`
+  font-size: 50px;
+  font-weight: bold;
+  padding: 5px 0;
+`;
+
+const FormContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+`;
+
+const AddBtn = styled.button`
+  background-color: white;
+  color: #3182f6;
+  padding: 5px 10px;
+  margin: 8px 0;
+  border: 2px solid #3182f6;
+  cursor: pointer;
+  border-radius: 5px;
+
+  &:hover {
+    background-color: #3182f6;
+    color: white;
+  }
+`;
+
+const DelBtn = styled.button`
+  background-color: white;
+  color: #3182f6;
+  padding: 3px 5px;
+  margin: 8px 8px;
+  border: 2px solid #3182f6;
+  cursor: pointer;
+  border-radius: 15px;
+  font-size: 10px;
+
+  &:hover {
+    background-color: #3182f6;
+    color: white;
+  }
+`;
+
+const TodoItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  padding: 5px 5px;
+`;
+
 export function TodoList() {
   const { user } = useContext(AuthContext);
   const [todos, setTodos] = useState([]);
@@ -83,19 +135,23 @@ export function TodoList() {
 
   return (
     <Container>
-      <input
-        type="text"
-        value={newTodoContent}
-        onChange={(e) => setNewTodoContent(e.target.value)}
-      />
-      <button onClick={saveTodo}>Add Todo</button>
+      <TodoTitle>Surfer's Todo-List</TodoTitle>
+      <FormContainer>
+        <input
+          type="text"
+          value={newTodoContent}
+          onChange={(e) => setNewTodoContent(e.target.value)}
+        />
+        <AddBtn onClick={saveTodo}>Add Todo</AddBtn>
+      </FormContainer>
       <ul>
         {todos.map((todo) =>
           todo ? (
-            <li key={todo.taskId}>
-              <span>{todo.taskName}</span>
-              <button onClick={() => deleteTodo(todo.taskId)}>Delete</button>
-            </li>
+            <TodoItem key={todo.taskId}>
+              {" "}
+              <span>• {todo.taskName}</span>
+              <DelBtn onClick={() => deleteTodo(todo.taskId)}>✕</DelBtn>
+            </TodoItem>
           ) : null
         )}
       </ul>

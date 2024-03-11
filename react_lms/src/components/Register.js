@@ -153,6 +153,11 @@ const CheckboxInput = styled.input`
   }
 `;
 
+// 조건 확인 메시지
+const Message = styled.div`
+  color: ${(props) => (props.isValid ? "#3182f6" : "red")};
+`;
+
 export function Register() {
   const navigate = useNavigate();
 
@@ -169,6 +174,22 @@ export function Register() {
   const [nationality, setNationality] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNum, setPhoneNum] = useState("");
+
+  // 입력 조건 확인
+  const [idValidationMsg, setIdValidationMsg] = useState("");
+  const [passwordValidationMsg, setPasswordValidationMsg] = useState("");
+  const [birthdateValidationMsg, setBirthdateValidationMsg] = useState("");
+  const [phoneNumValidationMsg, setPhoneNumValidationMsg] = useState("");
+  const [emailValidationMsg, setEmailValidationMsg] = useState("");
+
+  const validateId = (loginId) => {
+    const regex = /^[a-zA-Z0-9]{8,20}$/;
+    if (regex.test(loginId)) {
+      setIdValidationMsg("사용할 수 있는 ID입니다.");
+    } else {
+      setIdValidationMsg("영문, 숫자를 포함한 8~20자의 ID를 입력해 주세요.");
+    }
+  };
 
   const handleClickGender = (e) => {
     setGender(e.target.value);
@@ -219,8 +240,12 @@ export function Register() {
                 placeholder="영문, 숫자 포함 8~20자"
                 name="loginId"
                 value={loginId}
-                onChange={(e) => setLoginId(e.target.value)}
+                onChange={(e) => {
+                  setLoginId(e.target.value);
+                  validateId(e.target.value);
+                }}
               />
+              <small>{idValidationMsg}</small>
             </div>
             <div className="inputContainer">
               <span className="inputLabel">비밀번호</span>
