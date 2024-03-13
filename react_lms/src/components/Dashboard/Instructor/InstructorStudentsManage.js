@@ -5,7 +5,7 @@ import {
   apiGetCourseHistroiesByCourse,
   apiGetCompletedContentHistories,
   apiGetMyExamResult,
-  apiGetContentByCourse, // 변경된 부분: apiGetContentHistoriesByCourse 대신 apiGetContentByCourse 사용
+  apiGetContentByCourse,
 } from "../../RestApi";
 
 const Container = styled.div`
@@ -44,7 +44,7 @@ export function InstructorStudentsManage() {
   const [courseHistories, setCourseHistories] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [examResults, setExamResults] = useState([]);
-  const [totalContents, setTotalContents] = useState(0); // 변경된 부분: totalContents 상태 추가
+  const [totalContents, setTotalContents] = useState(0);
 
   const selectedCourse = courses.find(
     (course) => course.courseId === parseInt(selectedCourseId)
@@ -61,9 +61,9 @@ export function InstructorStudentsManage() {
 
       setCourseHistories(courseHistoriesData);
 
-      const contentResponse = await apiGetContentByCourse(selectedCourseId); // 변경된 부분: 해당 강의의 컨텐츠 가져오기
+      const contentResponse = await apiGetContentByCourse(selectedCourseId);
       const contentData = contentResponse.data.data;
-      setTotalContents(contentData.length); // 변경된 부분: 강의의 컨텐츠 개수 설정
+      setTotalContents(contentData.length);
 
       const newExamResults = [];
 
@@ -75,7 +75,7 @@ export function InstructorStudentsManage() {
         const completedContentCount =
           completedContentHistoriesResponse.data.data.length;
 
-        const progressRate = (completedContentCount / totalContents) * 100; // 변경된 부분: totalContents 사용
+        const progressRate = (completedContentCount / totalContents) * 100;
 
         const examResultResponse = await apiGetMyExamResult(memberId);
         const examResultData = examResultResponse.data.data;
@@ -92,7 +92,7 @@ export function InstructorStudentsManage() {
     };
 
     fetchCourseAndContentHistories();
-  }, [selectedCourseId, totalContents]); // 변경된 부분: totalContents를 의존성 배열에 추가
+  }, [selectedCourseId, totalContents]);
 
   const handleSelectChange = (e) => {
     setSelectedCourseId(e.target.value);
@@ -162,7 +162,7 @@ export function InstructorStudentsManage() {
                   <Td>{progressRate.toFixed(2)} %</Td>
                   <Td>
                     {studentExamResult
-                      ? `${studentExamResult.examResults.length} %`
+                      ? `${(studentExamResult.examResults.length / 10) * 100} %`
                       : "0 %"}
                   </Td>
                 </tr>
