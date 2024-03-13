@@ -572,9 +572,12 @@ export function apiGetAllContentHistories() {
 }
 // content당 contentHistory 조회
 export function apiGetContentHistoriesByCourse(contentId) {
-  return axios.get(`http://localhost:8080/api/content-histories/${contentId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return axios.get(
+    `http://localhost:8080/api/content-histories/list/${contentId}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
 }
 // 로그인 유저 contentHistory 조회
 export function apiGetMyContentHistory() {

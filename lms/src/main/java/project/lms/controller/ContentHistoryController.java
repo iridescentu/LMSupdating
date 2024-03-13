@@ -37,7 +37,7 @@ public class ContentHistoryController {
 	
 	// 특정 콘텐츠 ID에 대한 학습 이력 조회
 	@GetMapping("/list/{contentId}")
-	@PreAuthorize("hasAnyRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('INSTRUCTOR')")
 	public ResponseEntity<ResponseDto<List<ContentHistory>>> getContentHistoriesByContent(@PathVariable Long contentId) {
 		ResponseDto<List<ContentHistory>> contentHistories = contentHistoryService.getContentHistoriesByContent(contentId);
 		return new ResponseEntity<>(contentHistories, HttpStatus.OK);
