@@ -2,9 +2,9 @@ import styled from "styled-components";
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../../AuthContext";
 import {
-  apiGetContentHistoriesByCourse,
-  apiGetMyExamResult,
   apiGetCourseHistroiesByCourse,
+  apiGetCompletedContentHistories,
+  apiGetMyExamResult,
 } from "../../RestApi";
 
 const Container = styled.div`
@@ -42,62 +42,43 @@ export function InstructorStudentsManage() {
   const courses = user.teachingCourses;
   const [courseHistories, setCourseHistories] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
+  const [examResults, setExamResults] = useState([]);
   const selectedCourse = courses.find(
     (course) => course.courseId === parseInt(selectedCourseId)
   );
-  const [examResults, setExamResults] = useState([]);
-  const [progressRates, setProgressRates] = useState([]);
 
-  // 컨텐츠 히스토리 조회 => 강의진도율
-  // 해당 강의의 코스히스토리 조회
   useEffect(() => {
     const fetchCourseAndContentHistories = async () => {
       if (!selectedCourseId) return;
-      // 강의에 등록된 학생들의 courseHistory 가져오기
+
       const courseHistoriesResponse = await apiGetCourseHistroiesByCourse(
         selectedCourseId
       );
       const courseHistoriesData = courseHistoriesResponse.data.data;
 
       setCourseHistories(courseHistoriesData);
-      console.log(courseHistoriesData);
 
       const newExamResults = [];
-      const newProgressRates = [];
 
       for (const courseHistory of courseHistoriesData) {
-        // 각 학생 별 시험 결과 가져오기
-        const examResultResponse = await apiGetMyExamResult(
-          courseHistory.member.memberId
-        );
+        const memberId = courseHistory.member.memberId;
+
+        const completedContentHistoriesResponse =
+          await apiGetCompletedContentHistories(memberId);
+        const completedContentCount =
+          completedContentHistoriesResponse.data.data.length;
+
+        const examResultResponse = await apiGetMyExamResult(memberId);
+        const examResultData = examResultResponse.data.data;
+
         newExamResults.push({
-          memberId: courseHistory.member.memberId,
-          memberExamResults: examResultResponse.data.data,
-        });
-
-        // 각 학생 별 contentHistory 조회하여 진도율 계산
-        const contentHistoriesResponse = await apiGetContentHistoriesByCourse(
-          selectedCourseId,
-          courseHistory.member.memberId
-        );
-        const contentHistories = contentHistoriesResponse.data.data;
-        const totalContents = contentHistories.length;
-        const completedContents = contentHistories.filter(
-          (ch) => ch.isCompleted
-        ).length;
-        const progressRate =
-          totalContents > 0 ? (completedContents / totalContents) * 100 : 0;
-
-        newProgressRates.push({
-          memberId: courseHistory.member.memberId,
-          progressRate: progressRate,
+          memberId: memberId,
+          examResults: examResultData,
+          completedContentCount: completedContentCount,
         });
       }
 
-      console.log(newExamResults);
       setExamResults(newExamResults);
-      console.log(newProgressRates);
-      setProgressRates(newProgressRates);
     };
 
     fetchCourseAndContentHistories();
@@ -141,33 +122,40 @@ export function InstructorStudentsManage() {
               <Th>학생 이름</Th>
               <Th>성별</Th>
               <Th>수료증</Th>
-              <Th>질문</Th>
               <Th>강의 진도율</Th>
               <Th>과제율</Th>
             </tr>
           </thead>
           <tbody>
             {courseHistories.map((courseHistory) => {
-              const studentExamResult = examResults.find(
-                (result) => result.memberId === courseHistory.member.memberId
+              const memberId = courseHistory.member.memberId;
+
+              const studentInfo = examResults.find(
+                (result) => result.memberId === memberId
               );
-              // 학생 별 진도율 찾기
-              const studentProgressRate =
-                progressRates
-                  .find(
-                    (rate) => rate.memberId === courseHistory.member.memberId
-                  )
-                  ?.progressRate.toFixed(2) || "0"; // 소수점 둘째자리까지 표시, 없으면 0
+
+              const studentCompletedContentCount =
+                studentInfo?.completedContentCount || 0;
+
+              // 수정된 부분: selectedCourse가 존재하고 totalContents가 존재하는 경우에만 totalContents 값을 사용
+              const totalContents = selectedCourse?.totalContents || 0;
+
+              const progressRate =
+                totalContents > 0
+                  ? (studentCompletedContentCount / totalContents) * 100
+                  : 0;
+
+              const studentExamResult = studentInfo;
+
               return (
                 <tr key={courseHistory.courseHistoryId}>
                   <Td>{courseHistory.member.name}</Td>
                   <Td>{courseHistory.member.gender}</Td>
                   <Td>{courseHistory.contentStatus ? "완료" : "미완료"}</Td>
-                  <Td></Td> {/* 질문 및 강의 진도율 정보를 필요에 따라 추가 */}
-                  <Td>{studentProgressRate} %</Td>
+                  <Td>{progressRate.toFixed(2)} %</Td>
                   <Td>
                     {studentExamResult
-                      ? `${studentExamResult.memberExamResults.length} %`
+                      ? `${studentExamResult.examResults.length} %`
                       : "0 %"}
                   </Td>
                 </tr>
