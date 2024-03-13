@@ -624,6 +624,13 @@ export function apiPutCompleteContentHistory(memberId, contentId) {
   );
 }
 
+// 특정 회원의 학습 이력 조회
+export function apiGetContentHistoriesByMemberId(memberId) {
+  return axios.get(`http://localhost:8080/api/content-histories/${memberId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 // ----------------- Cart -----------------
 // cart 생성
 export function apiCreateCart(courseId) {

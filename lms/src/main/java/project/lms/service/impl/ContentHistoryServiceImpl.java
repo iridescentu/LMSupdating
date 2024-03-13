@@ -131,22 +131,39 @@ public class ContentHistoryServiceImpl implements ContentHistoryService {
 	}
 	
 	// 로그인 유저의 조회
-		private Member getCurrentUser() {
-	        String username = SecurityUtil.getCurrentloginId()
-	                .orElseThrow(() -> new InvalidRequestException("not found username", "현재 해당 사용자를 찾을 수 없습니다."));
+	private Member getCurrentUser() {
+	       String username = SecurityUtil.getCurrentloginId()
+	               .orElseThrow(() -> new InvalidRequestException("not found username", "현재 해당 사용자를 찾을 수 없습니다."));
 	        
-	        return memberRepository.findByLoginId(username);
-	    }
+	       return memberRepository.findByLoginId(username);
+	   }
 		
-		@Override
-		public ResponseDto<List<ContentHistory>> getMyContentHistories() {
-			Member member = getCurrentUser();
-			List<ContentHistory> contentHistories = contentHistoryRepository.findByMember(member);
+	@Override
+	public ResponseDto<List<ContentHistory>> getMyContentHistories() {
+		Member member = getCurrentUser();
+		List<ContentHistory> contentHistories = contentHistoryRepository.findByMember(member);
 			
-			return new ResponseDto<>(
-					ResultCode.SUCCESS.name(),
-					contentHistories,
-					"로그인한 사용자가 학습 중인 contentHistory를 조회하였습니다.");
-		}
+		return new ResponseDto<>(
+				ResultCode.SUCCESS.name(),
+				contentHistories,
+				"로그인한 사용자가 학습 중인 contentHistory를 조회하였습니다.");
+	}
+		
+	// memberId를 이용해 특정 회원의 학습 이력 조회
+	@Override
+	public ResponseDto<List<ContentHistory>> getContentHistoriesByMemberId(Long memberId) {
+		   // memberId를 이용해 Member 객체를 조회
+		   Member member = memberRepository.findById(memberId)
+		           .orElseThrow(() -> new InvalidRequestException("Member Not Found", "해당 회원을 찾을 수 없습니다."));
+		    
+		   // 조회한 Member 객체를 이용해 ContentHistory를 조회
+		   List<ContentHistory> contentHistories = contentHistoryRepository.findByMember(member);
+		    
+		   // 조회된 ContentHistory와 함께 성공 응답 반환
+		   return new ResponseDto<>(
+		           ResultCode.SUCCESS.name(),
+		           contentHistories,
+		           memberId + "번 회원의 학습 이력 조회에 성공하였습니다.");
+	}
 
 }

@@ -13,7 +13,7 @@ public interface ContentHistoryService {
 	// 특정 콘텐츠 ID에 대한 학습 이력 조회
 	public ResponseDto<List<ContentHistory>> getContentHistoriesByContent(Long contentId);
 	
-	// 특정 회원의 학습 이력 조회
+	// 현재 로그인한 회원의 학습 이력 조회
 	public ResponseDto<List<ContentHistory>> getMyContentHistories();
 
 	// 완료된 학습 이력 조회
@@ -27,5 +27,9 @@ public interface ContentHistoryService {
 
     // 학습 완료 버튼 클릭 시 isCompleted 필드 업데이트
     public ResponseDto<ContentHistory> completeContentHistory(Long memberId, Long contentId);
+    
+    // 특정 회원의 학습 이력 조회
+    public ResponseDto<List<ContentHistory>> getContentHistoriesByMemberId(Long memberId);
+
     
 }

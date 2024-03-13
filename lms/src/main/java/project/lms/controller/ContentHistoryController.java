@@ -79,5 +79,12 @@ public class ContentHistoryController {
 				contentHistoryRequestDto.getMemberId(), contentHistoryRequestDto.getContentId());
 		return new ResponseEntity<>(contentHistory, HttpStatus.OK);
 	}
+	
+	// 특정 회원의 학습 이력 조회
+	@GetMapping("/{memberId}")
+	public ResponseEntity<ResponseDto<List<ContentHistory>>> getContentHistoriesByMemberId(@PathVariable Long memberId) {
+	    ResponseDto<List<ContentHistory>> contentHistories = contentHistoryService.getContentHistoriesByMemberId(memberId);
+	    return new ResponseEntity<>(contentHistories, HttpStatus.OK);
+	}
 		
 }
