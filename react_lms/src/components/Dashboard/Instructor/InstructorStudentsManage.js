@@ -4,7 +4,7 @@ import { AuthContext } from "../../../AuthContext";
 import {
   apiGetCourseHistroiesByCourse,
   apiGetCompletedContentHistories,
-  apiGetMyExamResult,
+  apiGetMyExamHistory,
   apiGetContentByCourse,
 } from "../../RestApi";
 
@@ -46,14 +46,17 @@ export function InstructorStudentsManage() {
   const [examResults, setExamResults] = useState([]);
   const [totalContents, setTotalContents] = useState(0);
 
+  // 선택한 강의 정보 불러오기
   const selectedCourse = courses.find(
     (course) => course.courseId === parseInt(selectedCourseId)
   );
 
+  // 선택한 강의에 대한 학습 이력 불러오기
   useEffect(() => {
     const fetchCourseAndContentHistories = async () => {
       if (!selectedCourseId) return;
 
+      // 선택한 강의에 대한 강의 이력 불러오기
       const courseHistoriesResponse = await apiGetCourseHistroiesByCourse(
         selectedCourseId
       );
@@ -61,38 +64,62 @@ export function InstructorStudentsManage() {
 
       setCourseHistories(courseHistoriesData);
 
+      // 선택한 강의에 대한 콘텐츠 불러오기
       const contentResponse = await apiGetContentByCourse(selectedCourseId);
       const contentData = contentResponse.data.data;
-      setTotalContents(contentData.length);
+
+      // 총 콘텐츠 개수 업데이트
+      const updatedTotalContents = contentData.length;
+      setTotalContents(updatedTotalContents);
 
       const newExamResults = [];
 
+      // 학생 별로 학습 이력 및 시험 결과 계산
       for (const courseHistory of courseHistoriesData) {
         const memberId = courseHistory.member.memberId;
 
+        // 해당 학생이 완료한 콘텐츠 수 불러오기
         const completedContentHistoriesResponse =
           await apiGetCompletedContentHistories(memberId);
         const completedContentCount =
           completedContentHistoriesResponse.data.data.length;
 
-        const progressRate = (completedContentCount / totalContents) * 100;
+        // 완료된 콘텐츠 비율 계산
+        const progressRate =
+          (completedContentCount / updatedTotalContents) * 100;
 
-        const examResultResponse = await apiGetMyExamResult(memberId);
-        const examResultData = examResultResponse.data.data;
+        // 해당 학생의 시험 결과 불러오기
+        const examHistoryResponse = await apiGetMyExamHistory(memberId);
+        const examHistoryData = examHistoryResponse.data.data;
 
+        // 시험 결과를 기반으로 완료된 시험 개수 계산
+        const completedExamsCount = examHistoryData
+          ? examHistoryData.filter((exam) => exam.examCompletionStatus === true)
+              .length
+          : 0;
+
+        // 과제 완료 비율 계산
+        const assignmentRate =
+          updatedTotalContents > 0
+            ? (completedExamsCount / updatedTotalContents) * 100
+            : 0;
+
+        // 계산된 결과를 배열 추가
         newExamResults.push({
           memberId: memberId,
-          examResults: examResultData,
+          examResults: examHistoryData,
           completedContentCount: completedContentCount,
           progressRate: progressRate,
+          assignmentRate: assignmentRate,
         });
       }
 
+      // 계산된 결과 업데이트
       setExamResults(newExamResults);
     };
 
     fetchCourseAndContentHistories();
-  }, [selectedCourseId, totalContents]);
+  }, [selectedCourseId]);
 
   const handleSelectChange = (e) => {
     setSelectedCourseId(e.target.value);
@@ -110,6 +137,7 @@ export function InstructorStudentsManage() {
             </option>
           ))}
         </Select>
+        {/* 선택된 강의에 대한 정보를 표시 */}
         <Course>
           <p>{selectedCourse ? selectedCourse.subject?.subjectName : null}</p>
           <p>
@@ -126,6 +154,7 @@ export function InstructorStudentsManage() {
             {selectedCourse ? "총 수강자 수: " + courseHistories.length : null}
           </p>
         </Course>
+        {/* 학생 정보를 테이블로 표시 */}
         <UserTable>
           <thead>
             <tr>
@@ -140,6 +169,7 @@ export function InstructorStudentsManage() {
             {courseHistories.map((courseHistory) => {
               const memberId = courseHistory.member.memberId;
 
+              // 해당 학생의 정보 불러오기
               const studentInfo = examResults.find(
                 (result) => result.memberId === memberId
               );
@@ -162,7 +192,7 @@ export function InstructorStudentsManage() {
                   <Td>{progressRate.toFixed(2)} %</Td>
                   <Td>
                     {studentExamResult
-                      ? `${(studentExamResult.examResults.length / 10) * 100} %`
+                      ? studentExamResult.assignmentRate.toFixed(2) + " %"
                       : "0 %"}
                   </Td>
                 </tr>

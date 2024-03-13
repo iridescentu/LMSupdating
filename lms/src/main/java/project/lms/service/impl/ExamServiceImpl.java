@@ -85,7 +85,6 @@ public class ExamServiceImpl implements ExamService {
 	    return ExamQuestionDto.from(examQuestion);
 	}
 
-
 	// 컨텐츠에 따라 시험 목록 
 	@Override
 	public ResponseDto<List<ExamResponseDto>> getExamByContent(Long contentId) {
